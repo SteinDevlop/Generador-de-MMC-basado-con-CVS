@@ -36,11 +36,11 @@ class Administrador{
         for (int i = 0; i < N; i++) {
             getline(leerArchivo, linea, ';');
             convertir_coma_punto(linea);
-            db[i].x = stof(linea.c_str());
+            db[i].x = atof(linea.c_str());
             db[i].xx = pow(db[i].x,2);
             getline(leerArchivo, linea);
             convertir_coma_punto(linea);
-            db[i].y = stof(linea.c_str());
+            db[i].y = atof(linea.c_str());
             db[i].yy = pow(db[i].y,2);
             db[i].xy = db[i].x * db[i].y;
             sum_x+=db[i].x;
@@ -64,25 +64,69 @@ class Administrador{
     }
     void exportar_txt(){
         ofstream escribirArchivo("result/result.txt", ios::trunc);
-        escribirArchivo << "Para determinar los resultados del metodo de minimos cuadrados, se utilizan las siguientes ecuaciones:"<<endl;
-        escribirArchivo <<"Ecuaciones de la correlacion: "<<endl;
-        escribirArchivo<<"\\[p_{correlacion} = \\frac{{(N)(\\sum xy) - (\\sum x)(\\sum y)}}{{\\sqrt{{[(N)(\\sum x^2) - (\\sum x)^2][(N)(\\sum y^2) - (\\sum y)^2]}}}}\\] "<<endl;
-        escribirArchivo<<"\\[\\frac{{("<<tam<<")\\("<<sum_xy<<") - \\("<<sum_x<<")\\("<<sum_y<<")}}{{\\sqrt{{[("<<tam<<")\\("<<sum_xx<<") - \\("<<sum_x<<")^2][("<<tam<<")\\("<<sum_yy<<") - (\\"<<sum_y<<")^2]}}}}\\]= "<<correlacion<<endl;
-        escribirArchivo <<"Ecuaciones de la pendiente:"<<endl; 
-        escribirArchivo<<"\\[m_{pendiente} = \\frac{{(N)(\\sum xy) - (\\sum x) (\\sum y)}}{{(N)(\\sum x^2) - (\\sum x)^2}}\\] "<<endl; 
-        escribirArchivo<<"\\[\\frac{{("<<tam<<")\\("<<sum_xy<<") - \\("<<sum_x<<") \\("<<sum_y<<")}}{{("<<tam<<")\\("<<sum_xx<<")- \\("<<sum_x<<")^2}}\\] = "<<pendiente_m<<endl;
-        escribirArchivo<<"Ecuaciones del parametro b:"<<endl;
-        escribirArchivo<<"\\[b_{parametro} = \\frac{{(\\sum y)(\\sum x^2) - (\\sum x)(\\sum xy)}}{{(N)(\\sum x^2) - (\\sum x)^2}}\\]"<<endl;
-        escribirArchivo<<"\\[b_{parametro} = \\frac{{\\("<<sum_y<<")\\("<<sum_xx<<") - \\("<<sum_x<<")\\("<<sum_xy<<")}}{{("<<tam<<")\\("<<sum_xx<<") - \\("<<sum_x<<")^2}}\\] = "<<parametro_b<<endl;
-        escribirArchivo << "Con una correlacion de " << correlacion << ". El metodo de regresion " << (abs(correlacion) > 0.5 ? "es recomendable" : "no es recomendable") <<endl;
-        escribirArchivo<<"Con los datos adquiridos y aplicando las ecuaciones numeradas, la recta obtenida seria: \\[y="<<pendiente_m<<"x"<<((parametro_b) >= 0 ? "+" : "") <<parametro_b<<"\\]."<<endl;
+        escribirArchivo << "Para realizar el Mínimo de mínimos cuadrados (MMC), se procede de la siguiente manera:"<<endl;
+        escribirArchivo <<"1. Determinamos los valores del eje X y el eje Y según se muestra en la tabla a continuación."<<endl;
+        escribirArchivo<<"2. A partir de estos valores, calculamos los valores de \\(X^2 , Y^2 , XY\\), los cuales se presentan en la tabla adjunta."<<endl;
+        escribirArchivo<<"3. Posteriormente, obtenemos la sumatoria de cada columna de la tabla anterior, generando la siguiente tabla de sumas."<<endl;
+        escribirArchivo<<"\\begin{table}[!ht]"<<endl;
+        escribirArchivo<<"\\centering"<<endl;
+        escribirArchivo<<"  \\begin{tabular}{|l|l|}"<<endl;
+        escribirArchivo<<"\\hline"<<endl;
+        escribirArchivo<<" \\textbf{X} & \\textbf{Y} \\\\ \\hline"<<endl;
+        for(int i=0;i<tam;i++){escribirArchivo<<db[i].x<<" & "<<db[i].y<<" \\\\ \\hline"<<endl;}
+        escribirArchivo<<" \\end{tabular}"<<endl;
+        escribirArchivo<<"\\caption{Tabla X e Y}"<<endl;
+        escribirArchivo<<"\\label{XeY}"<<endl;
+        escribirArchivo<<"\\end{table}"<<endl;
+        escribirArchivo<<"\\newpage"<<endl;
+        escribirArchivo<<"\\begin{table}[!ht]"<<endl;
+        escribirArchivo<<"\\centering"<<endl;
+        escribirArchivo<<"  \\begin{tabular}{|l|l|l|l|l|}"<<endl;
+        escribirArchivo<<"\\hline"<<endl;
+        escribirArchivo<<" \\textbf{X} & \\textbf{Y} & \\textbf{XX} & \\textbf{YY} & \\textbf{XY}\\\\ \\hline"<<endl;
+        for(int i=0;i<tam;i++){escribirArchivo<<db[i].x<<" & "<<db[i].y<<" & "<<db[i].xx<<" & "<<db[i].yy<<" & "<<db[i].xy<<" \\\\ \\hline"<<endl;}
+        escribirArchivo<<" \\end{tabular}"<<endl;
+        escribirArchivo<<"\\caption{Tabla X e Y e XX e YY e XY}"<<endl;
+        escribirArchivo<<"\\label{XeYeXXeYYeXY}"<<endl;
+        escribirArchivo<<"\\end{table}"<<endl;
+        escribirArchivo<<"\\newpage"<<endl;
+        escribirArchivo<<"\\begin{table}[!ht]"<<endl;
+        escribirArchivo<<"\\centering"<<endl;
+        escribirArchivo<<"  \\begin{tabular}{|l|l|l|l|l|}"<<endl;
+        escribirArchivo<<"\\hline"<<endl;
+        escribirArchivo<<" \\textbf{S:X} & \\textbf{S:Y} & \\textbf{S:XX} & \\textbf{S:YY} & \\textbf{S:XY}\\\\ \\hline"<<endl;
+        escribirArchivo<<sum_x<<" & "<<sum_y<<" & "<<sum_xx<<" & "<<sum_yy<<" & "<<sum_xy<<" \\\\ \\hline"<<endl;
+        escribirArchivo<<" \\end{tabular}"<<endl;
+        escribirArchivo<<"\\caption{Tabla Sumatorias}"<<endl;
+        escribirArchivo<<"\\label{T_Sum}"<<endl;
+        escribirArchivo<<"\\end{table}"<<endl;
+        escribirArchivo<<"\\newpage"<<endl;
+        escribirArchivo<<"A partir de los resultados obtenidos, aplicamos las siguientes fórmulas para calcular la correlación, la pendiente y su correspondiente parámetro:"<<endl;
+        escribirArchivo<<"\\hfill \\break"<<endl;
+        escribirArchivo <<"\\(Correlacion = \\frac{{(N)(\\sum xy) - (\\sum x)(\\sum y)}}{{\\sqrt{{[(N)(\\sum x^2) - (\\sum x)^2][(N)(\\sum y^2) - (\\sum y)^2)}}}} =>\\frac{{("<<tam<<") ("<<sum_xy<<") - ("<<sum_x<<") ("<<sum_y<<")}}{{\\sqrt{{[("<<tam<<") ("<<sum_xx<<") - ("<<sum_x<<")^2][("<<tam<<") ("<<sum_yy<<") - ( "<<sum_y<<")^2]}}}}= "<<correlacion<<"\\)"<<endl;
+        escribirArchivo<<"\\hfill \\break"<<endl;
+        escribirArchivo<<"\\(Pendiente = \\frac{{(N)(\\sum xy) - (\\sum x) (\\sum y)}}{{(N)(\\sum x^2) - (\\sum x)^2}} => \\frac{{("<<tam<<")("<<sum_xy<<") - ("<<sum_x<<") ("<<sum_y<<")}}{{("<<tam<<") ("<<sum_xx<<")- ("<<sum_x<<")^2}}= "<<pendiente_m<<"\\)"<<endl;
+        escribirArchivo<<"\\hfill \\break"<<endl;
+        escribirArchivo<<"\\(Parametro = \\frac{{(\\sum y)(\\sum x^2) - (\\sum x)(\\sum xy)}}{{(N)(\\sum x^2) - (\\sum x)^2}}=>\\frac{{("<<sum_y<<")("<<sum_xx<<") - ("<<sum_x<<")("<<sum_xy<<")}}{{("<<tam<<")("<<sum_xx<<") - ("<<sum_x<<")^2}}= "<<parametro_b<<"\\)"<<endl;
+        escribirArchivo<<"\\hfill \\break"<<endl;
+        escribirArchivo<<"La correlación nos da un valor de " << correlacion << ", lo que significa que el método de regresión " << (abs(correlacion) > 0.5 ? "es recomendable." : "no es recomendable.") <<endl;
+        escribirArchivo<<"Con estos datos, determinamos la ecuación de la recta, que sigue la forma y=bx+ay . Sustituimos los valores obtenidos para determinar la ecuación de la recta específica:"<<endl;
+        escribirArchivo<<"\\[y="<<pendiente_m<<"x"<<((parametro_b) >= 0 ? "+" : "") <<parametro_b<<"\\]"<<endl;
+        escribirArchivo<<"Posteriormente, representamos gráficamente los resultados obtenidos en función de la recta de regresión, con las variables X e Y."<<endl;
+        escribirArchivo<<"\\begin{figure}[h]"<<endl;
+        escribirArchivo<<"\\centering"<<endl;
+        escribirArchivo<<"\\includegraphics[width=1 \\linewidth]{Graf_MMC.png}"<<endl;
+        escribirArchivo<<"\\caption{Gráfico de X vs Y.}"<<endl;
+        escribirArchivo<<"\\label{metodo_mmc}"<<endl;
+        escribirArchivo<<"\\end{figure}"<<endl;
+        escribirArchivo.close();
     }
     void mmc(){
         correlacion=(((tam * sum_xy) - (sum_x * sum_y))/(sqrt(tam * sum_xx - sum_x * sum_x)*sqrt(tam * sum_yy - sum_y * sum_y)));
         pendiente_m=((tam * sum_xy) - (sum_x * sum_y)) / ((tam * sum_xx) - (sum_x * sum_x));
         parametro_b=((sum_y * sum_xx) - (sum_x * sum_xy)) / ((tam * sum_xx) - (sum_x * sum_x));
     }
-    void exportar_grafic() {
+    void exportar_grafic() {    
         ofstream pyFile("result/plot_data.py", ios::trunc);
         pyFile << "import matplotlib.pyplot as plt\n";
         pyFile << "x = [";for (int i = 0; i < tam; i++){pyFile << db[i].x;if (i < tam - 1) pyFile << ", ";}
@@ -98,11 +142,13 @@ class Administrador{
         pyFile.close();
         system("python result/plot_data.py");
     }
-};
+    };
 class Menu{
 	public:
 		void mostrar_menu(Administrador &punt){
 			string opcion="";bool c;
+            bool salir = false;
+            while (!salir) {
 				do{
 					system("cls");
 					cout<<"__________________________________________________"<<endl;
@@ -119,30 +165,34 @@ class Menu{
 				char op = opcion[0];
 					switch(op){	
 					case '1':
+                        system("cls");
+                        cout<<"Iniciando proceso MMC ..."<<endl;
+                        cout.flush();
                         punt.importar();
+                        cout<<"Datos importados ..."<<endl;
                         punt.mmc();
+                        cout<<"Calculos relacionados concluidos ..."<<endl;
                         punt.exportar_cvs();
+                        cout<<"Archivo .csv generado ..."<<endl;
                         punt.exportar_txt();
+                        cout<<"Archivo .txt generado ..."<<endl;
                         punt.exportar_grafic();
                         remove("result/plot_data.py");
+                        cout<<"Archivo .png generado ..."<<endl;
                         cout<<"Proceso del MMC completado, datos afiliados en result/"<<endl;
-						break;
+						system("pause"); cout<<"Pulse cualquier tecla para continuar"<<endl;
+                        break;
 					case '2':
+                            system("cls");
                             remove("result/process.csv");
                             remove("result/result.txt");
                             remove("result/Graf_MMC.png");
+                            cout<<"Se han limpiado los datos de result/"<<endl;
+                            system("pause"); cout<<"Pulse cualquier tecla para continuar"<<endl;
 						break;
 					case '3':
-                    punt.~Administrador();
-                    return;
-						break;
-				}
-		}
-};
-int main(){
-    Menu menu;
-    Administrador obj;
-    menu.mostrar_menu(obj);
-    obj.~Administrador();
-    return 0;
-}
+                        salir = true;
+                        punt.~Administrador();
+                        return;
+					    break;}}}};
+int main(){Menu menu;Administrador obj;menu.mostrar_menu(obj);return 0;}
