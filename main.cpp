@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include<cmath>
+#include <cstdlib>
 using namespace std;
 struct Var_INIT {float x, y, xx, yy, xy;};
 class Administrador{
@@ -13,7 +14,7 @@ class Administrador{
     public:
     Administrador() : db(NULL), tam(0),correlacion(0),pendiente_m(0),parametro_b(0) {}
     ~Administrador() { delete[] db; }
-    void convertir_coma_punto(string &linea){
+    void convertir_coma_punto(string &linea){//Funcion por si al exportar los datos los decimales los ponen como , en vez de .
         int tam_lin=linea.size();
         for(int j=0;j<tam_lin-1;j++)
         {
@@ -21,7 +22,12 @@ class Administrador{
             
         }
         }
-    void importar() {
+    void eliminar_BOM(string &linea) {//Elimina el BOM al inicio de mmc.csv que genera problemas con los decimales.
+        if (linea.size() >= 3 && (unsigned char)linea[0] == 0xEF && (unsigned char)linea[1] == 0xBB && (unsigned char)linea[2] == 0xBF) {
+            linea = linea.substr(3);
+        }
+    }
+    void importar() {//Importa los datos de mmc.csv hacia Var_INIT *db
         string linea;
         int N = 0;
         ifstream leerArchivo("data/mmc.csv");
@@ -35,6 +41,7 @@ class Administrador{
         db = new Var_INIT[tam];
         for (int i = 0; i < N; i++) {
             getline(leerArchivo, linea, ';');
+            if (i == 0) {eliminar_BOM(linea);}
             convertir_coma_punto(linea);
             db[i].x = atof(linea.c_str());
             db[i].xx = pow(db[i].x,2);
@@ -51,7 +58,7 @@ class Administrador{
         }
         leerArchivo.close();
     }
-    void exportar_cvs(){
+    void exportar_cvs(){//Exporta los datos db y las sumatorias a un csv ubicado en result/process.csv
         ofstream escribirArchivo("result/process.csv", ios::trunc);
         bool firstTime=true;
         escribirArchivo << "X" << ";" << "Y" << ";" << "XX" << ";" << "YY" << ";" << "XY" << ";" << "S:X"<< ";" <<"S:Y"<< ";" <<"S:XX"<< ";" <<"S:YY"<< ";" <<"S:XY"<<endl;
@@ -62,7 +69,7 @@ class Administrador{
         }
         escribirArchivo.close();
     }
-    void exportar_txt(){
+    void exportar_txt(){//Exporta en result/result.txt con informacion exportable al estilo Latex
         ofstream escribirArchivo("result/result.txt", ios::trunc);
         escribirArchivo << "Para realizar el Mínimo de mínimos cuadrados (MMC), se procede de la siguiente manera:"<<endl;
         escribirArchivo <<"1. Determinamos los valores del eje X y el eje Y según se muestra en la tabla a continuación."<<endl;
@@ -121,12 +128,12 @@ class Administrador{
         escribirArchivo<<"\\end{figure}"<<endl;
         escribirArchivo.close();
     }
-    void mmc(){
+    void mmc(){ //Realiza los calculos del proceso del metodo de minimos cuadrados.
         correlacion=(((tam * sum_xy) - (sum_x * sum_y))/(sqrt(tam * sum_xx - sum_x * sum_x)*sqrt(tam * sum_yy - sum_y * sum_y)));
         pendiente_m=((tam * sum_xy) - (sum_x * sum_y)) / ((tam * sum_xx) - (sum_x * sum_x));
         parametro_b=((sum_y * sum_xx) - (sum_x * sum_xy)) / ((tam * sum_xx) - (sum_x * sum_x));
     }
-    void exportar_grafic() {    
+    void exportar_grafic() {//Crea el archivo python result/plot_data.py para exportar el .PNG grafico en result/Graf_MMC.png
         ofstream pyFile("result/plot_data.py", ios::trunc);
         pyFile << "import matplotlib.pyplot as plt\n";
         pyFile << "x = [";for (int i = 0; i < tam; i++){pyFile << db[i].x;if (i < tam - 1) pyFile << ", ";}
@@ -143,7 +150,7 @@ class Administrador{
         system("python result/plot_data.py");
     }
     };
-class Menu{
+class Menu{//Menu grafico para las opciones
 	public:
 		void mostrar_menu(Administrador &punt){
 			string opcion="";bool c;
@@ -152,7 +159,7 @@ class Menu{
 				do{
 					system("cls");
 					cout<<"__________________________________________________"<<endl;
-                    cout<<"|      Generador del metodo minimos cuadrados     |"<<endl;
+                    cout<<"|   Generador del Metodo de Minimos Cuadrados     |"<<endl;
                     cout<<"|_________________________________________________|"<<endl;
 					cout<<"\t 1) Iniciar MMC"<<endl;
 					cout<<"\t 2) Resetear datos"<<endl;
