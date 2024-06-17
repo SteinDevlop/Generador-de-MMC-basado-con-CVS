@@ -4,16 +4,19 @@
 #include<cmath>
 #include <cstdlib>
 using namespace std;
-struct Var_INIT {float x, y, xx, yy, xy;};
+struct Var_INIT {
+    float x, y, xx, yy, xy;
+    Var_INIT(): x(0),y(0),xx(0),yy(0),xy(0){}
+    };
 class Administrador{
     private:
-    Var_INIT *db = NULL;
+    Var_INIT *db = nullptr;
     int tam;
     float correlacion = 0, pendiente_m = 0, parametro_b = 0;
     float sum_x = 0, sum_y = 0, sum_xx = 0, sum_yy = 0, sum_xy = 0;
     public:
-    Administrador() : db(NULL), tam(0),correlacion(0),pendiente_m(0),parametro_b(0) {}
-    ~Administrador() { delete[] db; }
+    Administrador() : db(nullptr), tam(0),correlacion(0),pendiente_m(0),parametro_b(0) {}
+    ~Administrador() { delete[] db; sum_x = 0, sum_y = 0, sum_xx = 0, sum_yy = 0, sum_xy = 0;}
     void convertir_coma_punto(string &linea){//Funcion por si al exportar los datos los decimales los ponen como , en vez de .
         int tam_lin=linea.size();
         for(int j=0;j<tam_lin-1;j++)
@@ -28,6 +31,7 @@ class Administrador{
         }
     }
     void importar() {//Importa los datos de mmc.csv hacia Var_INIT *db
+        sum_x = 0, sum_y = 0, sum_xx = 0, sum_yy = 0, sum_xy = 0;
         string linea;
         int N = 0;
         ifstream leerArchivo("data/mmc.csv");
@@ -44,11 +48,11 @@ class Administrador{
             if (i == 0) {eliminar_BOM(linea);}
             convertir_coma_punto(linea);
             db[i].x = atof(linea.c_str());
-            db[i].xx = pow(db[i].x,2);
+            db[i].xx = db[i].x*db[i].x;
             getline(leerArchivo, linea);
             convertir_coma_punto(linea);
             db[i].y = atof(linea.c_str());
-            db[i].yy = pow(db[i].y,2);
+            db[i].yy = db[i].y *db[i].y;
             db[i].xy = db[i].x * db[i].y;
             sum_x+=db[i].x;
             sum_y+=db[i].y;
@@ -128,10 +132,24 @@ class Administrador{
         escribirArchivo<<"\\end{figure}"<<endl;
         escribirArchivo.close();
     }
-    void mmc(){ //Realiza los calculos del proceso del metodo de minimos cuadrados.
+    void mmc(Administrador &punt){ //Realiza los calculos del proceso del metodo de minimos cuadrados.
         correlacion=(((tam * sum_xy) - (sum_x * sum_y))/(sqrt(tam * sum_xx - sum_x * sum_x)*sqrt(tam * sum_yy - sum_y * sum_y)));
         pendiente_m=((tam * sum_xy) - (sum_x * sum_y)) / ((tam * sum_xx) - (sum_x * sum_x));
         parametro_b=((sum_y * sum_xx) - (sum_x * sum_xy)) / ((tam * sum_xx) - (sum_x * sum_x));
+        if(isnan(correlacion) or isnan(pendiente_m) or isnan(parametro_b)){
+            cout<<"No es posible generarse .csv, .txt y .png. | Error: mmc:nan."<<endl;
+        }   
+        else{
+            cout<<"Calculos relacionados concluidos ..."<<endl;
+            punt.exportar_cvs();
+            cout<<"Archivo .csv generado ..."<<endl;
+            punt.exportar_txt();
+            cout<<"Archivo .txt generado ..."<<endl;
+            punt.exportar_grafic();
+            remove("result/plot_data.py");
+            cout<<"Archivo .png generado ..."<<endl;
+            cout<<"Proceso del MMC completado, datos afiliados en result/"<<endl;
+        }
     }
     void exportar_grafic() {//Crea el archivo python result/plot_data.py para exportar el .PNG grafico en result/Graf_MMC.png
         ofstream pyFile("result/plot_data.py", ios::trunc);
@@ -177,16 +195,7 @@ class Menu{//Menu grafico para las opciones
                         cout.flush();
                         punt.importar();
                         cout<<"Datos importados ..."<<endl;
-                        punt.mmc();
-                        cout<<"Calculos relacionados concluidos ..."<<endl;
-                        punt.exportar_cvs();
-                        cout<<"Archivo .csv generado ..."<<endl;
-                        punt.exportar_txt();
-                        cout<<"Archivo .txt generado ..."<<endl;
-                        punt.exportar_grafic();
-                        remove("result/plot_data.py");
-                        cout<<"Archivo .png generado ..."<<endl;
-                        cout<<"Proceso del MMC completado, datos afiliados en result/"<<endl;
+                        punt.mmc(punt);
 						system("pause"); cout<<"Pulse cualquier tecla para continuar"<<endl;
                         break;
 					case '2':
@@ -199,7 +208,5 @@ class Menu{//Menu grafico para las opciones
 						break;
 					case '3':
                         salir = true;
-                        punt.~Administrador();
-                        return;
 					    break;}}}};
-int main(){Menu menu;Administrador obj;menu.mostrar_menu(obj);return 0;}
+int main(){Menu menu;Administrador obj;menu.mostrar_menu(obj);obj.~Administrador();return 0;}
