@@ -1,8 +1,9 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-#include<cmath>
+#include <cmath>
 #include <cstdlib>
+#include <iomanip> 
 using namespace std;
 struct Var_INIT {
     float x, y, xx, yy, xy;
@@ -73,12 +74,18 @@ class Administrador{
         }
         escribirArchivo.close();
     }
-    void exportar_txt(){//Exporta en result/result.txt con informacion exportable al estilo Latex
-        ofstream escribirArchivo("result/result.txt", ios::trunc);
+    void exportar_txt(){//Exporta en result/result.tex con informacion exportable al estilo Latex
+        ofstream escribirArchivo("result/result.tex", ios::trunc);
+        escribirArchivo<<"% === No modificar éstos parámetros === "<<endl;
+        escribirArchivo<<"\\documentclass[letterpaper, 12pt]{report}\\usepackage[utf8]{inputenc}\\usepackage[english, spanish]{babel}\\usepackage{fullpage}\\usepackage{graphicx}\\usepackage{enumitem} \\usepackage{chngcntr}\\counterwithin{figure}{section}\\renewcommand{\\thesection}{\\arabic{section}} \\renewcommand{\\thesubsection} {\\thesection.\\arabic{subsection}}\\renewcommand{\\baselinestretch}{1.5}\\usepackage{float}"<<endl;
+        escribirArchivo<<"% === No modificar éstos parámetros === "<<endl;
+        escribirArchivo<<"\\begin{document}"<<endl;
         escribirArchivo << "Para realizar el Mínimo de mínimos cuadrados (MMC), se procede de la siguiente manera:"<<endl;
-        escribirArchivo <<"1. Determinamos los valores del eje X y el eje Y según se muestra en la tabla a continuación."<<endl;
-        escribirArchivo<<"2. A partir de estos valores, calculamos los valores de \\(X^2 , Y^2 , XY\\), los cuales se presentan en la tabla adjunta."<<endl;
-        escribirArchivo<<"3. Posteriormente, obtenemos la sumatoria de cada columna de la tabla anterior, generando la siguiente tabla de sumas."<<endl;
+        escribirArchivo<<"\\begin{enumerate}"<<endl;
+        escribirArchivo <<"\\item Determinamos los valores del eje X y el eje Y según se muestra en la tabla \\ref{XeY}."<<endl;
+        escribirArchivo<<"\\item A partir de estos valores, calculamos los valores de \\(X^2 , Y^2 , XY\\), los cuales se presentan en la tabla \\ref{XeYeXXeYYeXY}."<<endl;
+        escribirArchivo<<"\\item Posteriormente, obtenemos la sumatoria de cada columna de la tabla anterior, generado en la tabla \\ref{T_Sum}"<<endl;
+        escribirArchivo<<"\\end{enumerate}"<<endl;
         escribirArchivo<<"\\begin{table}[!ht]"<<endl;
         escribirArchivo<<"\\centering"<<endl;
         escribirArchivo<<"  \\begin{tabular}{|l|l|}"<<endl;
@@ -113,23 +120,32 @@ class Administrador{
         escribirArchivo<<"\\end{table}"<<endl;
         escribirArchivo<<"\\newpage"<<endl;
         escribirArchivo<<"A partir de los resultados obtenidos, aplicamos las siguientes fórmulas para calcular la correlación, la pendiente y su correspondiente parámetro:"<<endl;
+        escribirArchivo<<""<<endl;
         escribirArchivo<<"\\hfill \\break"<<endl;
-        escribirArchivo <<"\\(Correlacion = \\frac{{(N)(\\sum xy) - (\\sum x)(\\sum y)}}{{\\sqrt{{[(N)(\\sum x^2) - (\\sum x)^2][(N)(\\sum y^2) - (\\sum y)^2)}}}} =>\\frac{{("<<tam<<") ("<<sum_xy<<") - ("<<sum_x<<") ("<<sum_y<<")}}{{\\sqrt{{[("<<tam<<") ("<<sum_xx<<") - ("<<sum_x<<")^2][("<<tam<<") ("<<sum_yy<<") - ( "<<sum_y<<")^2]}}}}= "<<correlacion<<"\\)"<<endl;
+        escribirArchivo <<"\\(Correlacion = \\frac{{(N)(\\sum xy) - (\\sum x)(\\sum y)}}{{\\sqrt{{[(N)(\\sum x^2) - (\\sum x)^2][(N)(\\sum y^2) - (\\sum y)^2)}}}} =>\\frac{{("<<tam<<") ("<<sum_xy<<") - ("<<sum_x<<") ("<<sum_y<<")}}{{\\sqrt{{[("<<tam<<") ("<<sum_xx<<") - ("<<sum_x<<")^2][("<<tam<<") ("<<sum_yy<<") - ( "<<sum_y<<")^2]}}}}= "<<fixed<<setprecision(3)<<correlacion<<"\\)"<<endl;
+        escribirArchivo<<""<<endl;
         escribirArchivo<<"\\hfill \\break"<<endl;
-        escribirArchivo<<"\\(Pendiente = \\frac{{(N)(\\sum xy) - (\\sum x) (\\sum y)}}{{(N)(\\sum x^2) - (\\sum x)^2}} => \\frac{{("<<tam<<")("<<sum_xy<<") - ("<<sum_x<<") ("<<sum_y<<")}}{{("<<tam<<") ("<<sum_xx<<")- ("<<sum_x<<")^2}}= "<<pendiente_m<<"\\)"<<endl;
+        escribirArchivo<<"\\(Pendiente = \\frac{{(N)(\\sum xy) - (\\sum x) (\\sum y)}}{{(N)(\\sum x^2) - (\\sum x)^2}} => \\frac{{("<<tam<<")("<<sum_xy<<") - ("<<sum_x<<") ("<<sum_y<<")}}{{("<<tam<<") ("<<sum_xx<<")- ("<<sum_x<<")^2}}= "<<fixed<<setprecision(3)<<pendiente_m<<"\\)"<<endl;
+        escribirArchivo<<""<<endl;
         escribirArchivo<<"\\hfill \\break"<<endl;
-        escribirArchivo<<"\\(Parametro = \\frac{{(\\sum y)(\\sum x^2) - (\\sum x)(\\sum xy)}}{{(N)(\\sum x^2) - (\\sum x)^2}}=>\\frac{{("<<sum_y<<")("<<sum_xx<<") - ("<<sum_x<<")("<<sum_xy<<")}}{{("<<tam<<")("<<sum_xx<<") - ("<<sum_x<<")^2}}= "<<parametro_b<<"\\)"<<endl;
+        escribirArchivo<<"\\(Parametro = \\frac{{(\\sum y)(\\sum x^2) - (\\sum x)(\\sum xy)}}{{(N)(\\sum x^2) - (\\sum x)^2}}=>\\frac{{("<<sum_y<<")("<<sum_xx<<") - ("<<sum_x<<")("<<sum_xy<<")}}{{("<<tam<<")("<<sum_xx<<") - ("<<sum_x<<")^2}}= "<<fixed<<setprecision(3)<<parametro_b<<"\\)"<<endl;
         escribirArchivo<<"\\hfill \\break"<<endl;
-        escribirArchivo<<"La correlación nos da un valor de " << correlacion << ", lo que significa que el método de regresión " << (abs(correlacion) > 0.5 ? "es recomendable." : "no es recomendable.") <<endl;
-        escribirArchivo<<"Con estos datos, determinamos la ecuación de la recta, que sigue la forma y=bx+ay . Sustituimos los valores obtenidos para determinar la ecuación de la recta específica:"<<endl;
-        escribirArchivo<<"\\[y="<<pendiente_m<<"x"<<((parametro_b) >= 0 ? "+" : "") <<parametro_b<<"\\]"<<endl;
-        escribirArchivo<<"Posteriormente, representamos gráficamente los resultados obtenidos en función de la recta de regresión, con las variables X e Y."<<endl;
+        escribirArchivo<<""<<endl;
+        escribirArchivo<<"La correlación nos da un valor de " << fixed<<setprecision(3)<<correlacion << ", lo que significa que el método de regresión " << fixed<<setprecision(3)<<(abs(correlacion) > 0.5 ? "es recomendable." : "no es recomendable.") <<endl;
+        escribirArchivo<<""<<endl;
+        escribirArchivo<<"Con estos datos, determinamos la ecuación de la recta, que sigue la forma \\(y = mx+b\\). Sustituimos los valores obtenidos para determinar la ecuación de la recta específica:"<<endl;
+        escribirArchivo<<""<<endl;
+        escribirArchivo<<"\\[y="<<fixed<<setprecision(3)<<pendiente_m<<"x"<<((parametro_b) >= 0 ? "+" : "") <<fixed<<setprecision(3)<<parametro_b<<"\\]"<<endl;
+        escribirArchivo<<""<<endl;
+        escribirArchivo<<"Posteriormente, representamos gráficamente los resultados obtenidos en función de la recta de regresión, con las variables X e Y, se hace referencia en el gráfico \\ref{metodo_mmc}."<<endl;
+        escribirArchivo<<""<<endl;
         escribirArchivo<<"\\begin{figure}[h]"<<endl;
         escribirArchivo<<"\\centering"<<endl;
         escribirArchivo<<"\\includegraphics[width=1 \\linewidth]{Graf_MMC.png}"<<endl;
         escribirArchivo<<"\\caption{Gráfico de X vs Y.}"<<endl;
         escribirArchivo<<"\\label{metodo_mmc}"<<endl;
         escribirArchivo<<"\\end{figure}"<<endl;
+        escribirArchivo<<"\\end{document}"<<endl;
         escribirArchivo.close();
     }
     void mmc(Administrador &punt){ //Realiza los calculos del proceso del metodo de minimos cuadrados.
@@ -137,14 +153,14 @@ class Administrador{
         pendiente_m=((tam * sum_xy) - (sum_x * sum_y)) / ((tam * sum_xx) - (sum_x * sum_x));
         parametro_b=((sum_y * sum_xx) - (sum_x * sum_xy)) / ((tam * sum_xx) - (sum_x * sum_x));
         if(isnan(correlacion) or isnan(pendiente_m) or isnan(parametro_b)){
-            cout<<"No es posible generarse .csv, .txt y .png. | Error: mmc:nan."<<endl;
+            cout<<"No es posible generarse .csv, .tex y .png. | Error: mmc:nan."<<endl;
         }   
         else{
             cout<<"Calculos relacionados concluidos ..."<<endl;
             punt.exportar_cvs();
             cout<<"Archivo .csv generado ..."<<endl;
             punt.exportar_txt();
-            cout<<"Archivo .txt generado ..."<<endl;
+            cout<<"Archivo .tex generado ..."<<endl;
             punt.exportar_grafic();
             remove("result/plot_data.py");
             cout<<"Archivo .png generado ..."<<endl;
@@ -163,7 +179,7 @@ class Administrador{
         pyFile << "plt.xlabel('X')\n";
         pyFile << "plt.ylabel('Y')\n";
         pyFile << "plt.title('Grafico de X vs Y')\n";
-        pyFile << "plt.savefig('result/Graf_MMC.png', bbox_inches='tight', dpi=300)\n";
+        pyFile << "plt.savefig('result/Graf_MMC.png', bbox_inches='tight', dpi=600)\n";
         pyFile.close();
         system("python result/plot_data.py");
     }
@@ -201,7 +217,7 @@ class Menu{//Menu grafico para las opciones
 					case '2':
                             system("cls");
                             remove("result/process.csv");
-                            remove("result/result.txt");
+                            remove("result/result.tex");
                             remove("result/Graf_MMC.png");
                             cout<<"Se han limpiado los datos de result/"<<endl;
                             system("pause"); cout<<"Pulse cualquier tecla para continuar"<<endl;
